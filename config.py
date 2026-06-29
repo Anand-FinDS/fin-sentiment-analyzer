@@ -6,7 +6,12 @@
 # ════════════════════════════════════════════════════════════
 
 import os
-from dotenv import load_dotenv
+#from dotenv import load_dotenv - for GCP and local
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # dotenv not needed on Streamlit Cloud
 
 # ── API Keys ──────────────────────────────────────────────────
 load_dotenv()  # reads .env file automatically
