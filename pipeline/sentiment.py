@@ -19,6 +19,7 @@ from config import (
     FINBERT_BATCH_SIZE,
     FINANCIAL_LEXICON,
     CLICKBAIT_PATTERNS,
+    USE_FINBERT,
 )
 
 # ── Model singletons ──────────────────────────────────────────
@@ -334,44 +335,35 @@ def three_way_comparison(df: pd.DataFrame) -> pd.DataFrame:
 
 def run_sentiment(df_relevant: pd.DataFrame,
                   progress_callback=None) -> pd.DataFrame:
-    """
-    Run complete sentiment pipeline on relevant articles.
-    VADER → FinBERT → three-way comparison
-
-    Args:
-        df_relevant      : Direct + Indirect articles from classify.py
-        progress_callback: optional function(current, total, msg)
-
-    Returns:
-        df_relevant with all sentiment columns added
-    """
     if df_relevant.empty:
         print("⚠ Empty DataFrame — nothing to score")
         return df_relevant
 
     print(f"\nRunning sentiment pipeline on "
           f"{len(df_relevant)} articles...")
+    print(f"Mode: {'GPU — FinBERT enabled' if USE_FINBERT else 'Cloud — LLM fills FinBERT role'}")
 
-    # Phase 3a — VADER
+    # Phase 3a — VADER (always runs)
     df_relevant = run_vader(df_relevant)
 
-    # Phase 3b — FinBERT
-    df_relevant = run_finbert(df_relevant, progress_callback)
+    # Phase 3b — FinBERT or cloud substitute
+    if USE_FINBERT:
+        df_relevant = run_finbert(df_relevant, progress_callback)
+    else:
+        print("  FinBERT disabled — using LLM sentiment as substitute")
+        sent_col = 'llm_sentiment' if 'llm_sentiment' in df_relevant.columns else 'llm_label'
+        df_relevant['finbert_headline_label'] = df_relevant[sent_col].fillna('Neutral')
+        df_relevant['finbert_headline_score'] = df_relevant['llm_score'].fillna(0.0).abs()
+        df_relevant['finbert_summary_label']  = df_relevant[sent_col].fillna('Neutral')
+        df_relevant['finbert_summary_score']  = df_relevant['llm_score'].fillna(0.0).abs()
+        df_relevant['finbert_label']          = df_relevant[sent_col].fillna('Neutral')
+        df_relevant['finbert_compound']       = df_relevant['llm_score'].fillna(0.0)
+        print(f"  FinBERT (cloud) label split:")
+        print(df_relevant['finbert_label'].value_counts().to_string())
 
     # Phase 3c — Three-way comparison
     df_relevant = three_way_comparison(df_relevant)
 
     print(f"\n── Sentiment pipeline complete ─────────────────")
-    print(f"  Columns added:")
-    sentiment_cols = [
-        'is_clickbait', 'vader_headline', 'vader_summary',
-        'vader_compound', 'vader_label', 'vader_confidence',
-        'finbert_headline_label', 'finbert_headline_score',
-        'finbert_summary_label', 'finbert_summary_score',
-        'finbert_label', 'finbert_compound',
-    ]
-    for col in sentiment_cols:
-        if col in df_relevant.columns:
-            print(f"    ✓ {col}")
-
     return df_relevant
+
