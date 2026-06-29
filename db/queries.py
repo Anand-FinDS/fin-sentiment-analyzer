@@ -69,22 +69,27 @@ def get_stock_count() -> int:
 # ════════════════════════════════════════════════════════════
 # PIPELINE RUNS
 # ════════════════════════════════════════════════════════════
-
 def create_run(symbol: str, company_name: str,
                date_from: str, date_to: str) -> str:
-    """
-    Create a new pipeline run record.
-    Returns run_id (UUID).
-    """
     run_id = str(uuid.uuid4())
     conn   = get_connection()
     cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO pipeline_runs
-            (run_id, symbol, company_name, date_from, date_to, status)
-        VALUES (?, ?, ?, ?, ?, 'running')
-    """, (run_id, symbol, company_name, date_from, date_to))
-    conn.commit()
+    try:
+        cursor.execute("""
+            INSERT INTO pipeline_runs
+                (run_id, symbol, company_name, date_from, date_to, status)
+            VALUES (?, ?, ?, ?, ?, 'running')
+        """, (run_id, symbol, company_name, date_from, date_to))
+        conn.commit()
+    except Exception:
+        # Run already exists — get existing run_id
+        cursor.execute("""
+            SELECT run_id FROM pipeline_runs
+            WHERE symbol=? AND date_from=? AND date_to=?
+        """, (symbol, date_from, date_to))
+        row = cursor.fetchone()
+        if row:
+            run_id = row[0]
     conn.close()
     return run_id
 
