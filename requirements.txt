@@ -26,4 +26,4 @@ seaborn==0.13.2
 # ── Database ──────────────────────────────────────────────────
 # sqlite3 — built into Python, no install needed
 
-python-dotenv
+#python-dotenv #added for streamlit_deploy
