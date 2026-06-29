@@ -12,37 +12,69 @@ into a production-grade financial analysis pipeline.
 
 ## 🏗️ Architecture
 Financial News (Finnhub API)
+
 ↓
+
 ┌─────────────────────────────────────┐
+
 │  Stage 1: LLM Classification        │
+
 │  Groq llama-4-scout-17b             │
+
 │  → Direct / Indirect / Irrelevant   │
+
 └─────────────────────────────────────┘
+
 ↓
+
 ┌─────────────────────────────────────┐
+
 │  Stage 2a: VADER (Rule-based)       │
+
 │  Custom financial lexicon           │
+
 │  Clickbait detection                │
+
 │  Smart headline/summary weighting   │
+
 └─────────────────────────────────────┘
+
 ↓
+
 ┌─────────────────────────────────────┐
+
 │  Stage 2b: FinBERT (Domain Model)   │
+
 │  ProsusAI/finbert                   │
+
 │  GPU accelerated (local)            │
+
 │  LLM substitute (cloud)             │
+
 └─────────────────────────────────────┘
+
 ↓
+
 ┌─────────────────────────────────────┐
+
 │  Stage 3: Correlation Analysis      │
+
 │  Pearson: Same-day, Lag-1, Lag-2    │
+
 │  Stock price via yfinance           │
+
 └─────────────────────────────────────┘
+
 ↓
+
 ┌─────────────────────────────────────┐
+
 │  Stage 4: GPT-4o Findings Report    │
+
 │  AI-generated analysis              │
+
 │  Downloadable PDF/TXT               │
+
 └─────────────────────────────────────┘
 ## ✨ Key Features
 
@@ -132,30 +164,53 @@ Get API keys:
 ## 🏗️ Project Structure
 fin-sentiment-analyzer/
 ├── app.py                    # Streamlit UI (5 tabs)
+fin-sentiment-analyzer/
+
+├── app.py                    # Streamlit UI (5 tabs)
+
 ├── config.py                 # API keys, constants, lexicon
+
 ├── requirements.txt
+
 ├── setup_stocks.py           # Finnhub stock universe fetch
+
 ├── filter_stocks_by_mcap.py  # Filter to 179 quality stocks
+
 ├── pipeline/
+
 │   ├── fetch.py              # Finnhub news + trading date
+
 │   ├── classify.py           # Groq LLM classification
+
 │   ├── sentiment.py          # VADER + FinBERT scoring
+
 │   ├── prices.py             # yfinance price data
+
 │   ├── correlate.py          # Pearson correlation
+
 │   └── report.py             # GPT-4o report generation
+
 ├── db/
+
 │   ├── schema.py             # SQLite schema + stats
+
 │   └── queries.py            # All CRUD operations
+
 └── charts/
+
 └── visualizations.py     # 6 matplotlib charts
 
 ## ☁️ Deployment
 **Live Demo**: http://34.72.212.182:8501 (GCP n1-standard-4)
 **Cloud Architecture**:
 GCP VM (n1-standard-4, 15GB RAM)
+
 └── Ubuntu 22.04
+
 └── Miniconda (Python 3.10)
+
 └── Streamlit (port 8501)
+
 └── SQLite (persistent DB)
 
 ## 🔮 Future Work
