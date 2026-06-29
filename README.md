@@ -12,9 +12,7 @@ into a production-grade financial analysis pipeline.
 
 ## 🏗️ Architecture
 Financial News (Finnhub API)
-
 ↓
-
 ┌─────────────────────────────────────┐
 
 │  Stage 1: LLM Classification        │
@@ -24,9 +22,7 @@ Financial News (Finnhub API)
 │  → Direct / Indirect / Irrelevant   │
 
 └─────────────────────────────────────┘
-
 ↓
-
 ┌─────────────────────────────────────┐
 
 │  Stage 2a: VADER (Rule-based)       │
@@ -38,9 +34,7 @@ Financial News (Finnhub API)
 │  Smart headline/summary weighting   │
 
 └─────────────────────────────────────┘
-
 ↓
-
 ┌─────────────────────────────────────┐
 
 │  Stage 2b: FinBERT (Domain Model)   │
@@ -52,9 +46,7 @@ Financial News (Finnhub API)
 │  LLM substitute (cloud)             │
 
 └─────────────────────────────────────┘
-
 ↓
-
 ┌─────────────────────────────────────┐
 
 │  Stage 3: Correlation Analysis      │
