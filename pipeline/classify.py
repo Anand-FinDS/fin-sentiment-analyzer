@@ -123,7 +123,12 @@ def classify_batch(batch_df: pd.DataFrame,
             max_tokens  = 600,
         )
         raw    = resp.choices[0].message.content.strip()
-        raw    = raw.replace("```json", "").replace("```", "").strip()
+        # Remove any preamble before the JSON array
+        if '[' in raw:
+            raw = raw[raw.index('['):]
+        if ']' in raw:
+            raw = raw[:raw.rindex(']') + 1]
+        raw = raw.replace("```json", "").replace("```", "").strip()
         parsed = json.loads(raw)
 
         return [
