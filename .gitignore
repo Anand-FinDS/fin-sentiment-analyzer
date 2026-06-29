@@ -3,10 +3,3 @@ data/
 __pycache__/
 *.pyc
 *.db
-*.csv
-*.txt
-app_prototype.py
-debug_db.py
-debug_db_2.py
-cleanup_db.py
-filter_stocks_by_mcap.py

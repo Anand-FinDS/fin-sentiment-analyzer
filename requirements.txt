@@ -1,0 +1,27 @@
+# ── Core ──────────────────────────────────────────────────────
+streamlit==1.45.1
+pandas==2.2.3
+numpy==1.26.4
+
+# ── APIs ──────────────────────────────────────────────────────
+finnhub-python==2.4.20
+groq==0.28.0
+openai==1.82.0
+yfinance==0.2.61
+
+# ── NLP ───────────────────────────────────────────────────────
+vaderSentiment==3.3.2
+transformers==4.44.0
+torch==2.11.0
+accelerate==0.33.0
+
+# ── Data + Calendar ───────────────────────────────────────────
+pandas-market-calendars==4.4.1
+scikit-learn==1.5.2
+
+# ── Visualization ─────────────────────────────────────────────
+matplotlib==3.9.4
+seaborn==0.13.2
+
+# ── Database ──────────────────────────────────────────────────
+# sqlite3 — built into Python, no install needed
