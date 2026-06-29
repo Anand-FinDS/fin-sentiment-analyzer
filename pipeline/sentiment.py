@@ -10,7 +10,7 @@
 # ════════════════════════════════════════════════════════════
 
 import re
-import torch
+#import torch
 import numpy as np
 import pandas as pd
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
@@ -31,6 +31,7 @@ def get_device() -> str:
     """Returns cuda if available else cpu."""
     global _device
     if _device is None:
+        import torch  
         _device = 'cuda' if torch.cuda.is_available() else 'cpu'
     return _device
 
