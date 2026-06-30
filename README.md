@@ -14,7 +14,6 @@ into a production-grade financial analysis pipeline.
 Financial News (Finnhub API)
 
 ↓
-
 ┌─────────────────────────────────────┐
 
 │  Stage 1: LLM Classification        │
