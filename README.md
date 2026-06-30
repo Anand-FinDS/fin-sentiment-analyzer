@@ -88,7 +88,7 @@ Financial News (Finnhub API)
 
 ## 🖥️ Streamlit Dashboard
 
-5-tab interface:
+6-tab interface:
 | Tab | Content |
 |-----|---------|
 | 📈 Sentiment & Price | Daily sentiment vs price movement chart |
@@ -96,6 +96,7 @@ Financial News (Finnhub API)
 | 📰 News Feed | Classified articles with sentiment badges |
 | 📋 Findings Report | GPT-4o generated analysis |
 | 📉 Stock Trend | 1-year price history with MA20/MA50 |
+| 📢 Buzz vs Volatility | Article Volume (Buzz) vs Price Volatility |
 
 ## 🚀 Quick Start
 
