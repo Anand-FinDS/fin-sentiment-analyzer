@@ -531,3 +531,33 @@ def price_history_exists(symbol: str) -> bool:
     count = cursor.fetchone()[0]
     conn.close()
     return count > 0
+
+def insert_buzz_correlation(run_id: str, symbol: str, buzz_result: dict):
+    conn   = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT OR REPLACE INTO buzz_correlation
+            (run_id, symbol, trading_days, correlation,
+             correlation_direct, interpretation)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (run_id, symbol, buzz_result['n'],
+          buzz_result['correlation'],
+          buzz_result['correlation_direct'],
+          buzz_result['interpretation']))
+    conn.commit()
+    conn.close()
+
+
+def get_buzz_correlation(run_id: str) -> dict:
+    conn   = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT trading_days, correlation, correlation_direct, interpretation
+        FROM buzz_correlation WHERE run_id = ?
+    """, (run_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        return {'n': row[0], 'correlation': row[1],
+                'correlation_direct': row[2], 'interpretation': row[3]}
+    return None

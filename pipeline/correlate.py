@@ -244,6 +244,44 @@ def interpret_correlation(results: dict) -> str:
 
     return "\n".join(lines)
 
+def run_buzz_correlation(df_merged: pd.DataFrame) -> dict:
+    """
+    Correlate article volume (buzz) with same-day price VOLATILITY
+    (absolute price change), independent of sentiment direction.
+    """
+    if df_merged.empty or len(df_merged) < 3:
+        return {'n': len(df_merged), 'correlation': None,
+                'interpretation': 'Insufficient trading days'}
+
+    df = df_merged.copy()
+    df['abs_price_change'] = df['price_change_pct'].abs()
+
+    corr = df['article_count'].corr(df['abs_price_change'])
+    corr_direct = df['direct_count'].corr(df['abs_price_change']) \
+        if 'direct_count' in df.columns else None
+
+    n = len(df)
+    if corr is None or pd.isna(corr):
+        interpretation = "Could not compute — insufficient variance"
+    elif abs(corr) >= 0.5:
+        interpretation = f"Strong {'positive' if corr > 0 else 'negative'} relationship — buzz volume is a meaningful volatility signal"
+    elif abs(corr) >= 0.3:
+        interpretation = f"Moderate {'positive' if corr > 0 else 'negative'} relationship"
+    else:
+        interpretation = "Weak relationship — buzz volume alone is not a reliable volatility predictor in this window"
+
+    print(f"\n── Buzz vs Volatility Correlation ──────────────")
+    print(f"  Trading days        : {n}")
+    print(f"  Article count corr  : {corr:.3f}" if corr is not None and not pd.isna(corr) else "  Article count corr  : N/A")
+    print(f"  Direct count corr   : {corr_direct:.3f}" if corr_direct is not None and not pd.isna(corr_direct) else "  Direct count corr   : N/A")
+    print(f"  {interpretation}")
+
+    return {
+        'n': n,
+        'correlation': round(corr, 4) if corr is not None and not pd.isna(corr) else None,
+        'correlation_direct': round(corr_direct, 4) if corr_direct is not None and not pd.isna(corr_direct) else None,
+        'interpretation': interpretation,
+    }
 
 # ════════════════════════════════════════════════════════════
 # MAIN — run full correlation pipeline

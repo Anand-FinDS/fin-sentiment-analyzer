@@ -233,6 +233,21 @@ def create_tables():
         )
     """)
 
+    # ── buzz_correlation ──────────────────────────────────────
+    # Article volume (buzz) vs price volatility correlation
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS buzz_correlation (
+            run_id              TEXT PRIMARY KEY,
+            symbol              TEXT,
+            trading_days        INTEGER,
+            correlation         REAL,
+            correlation_direct  REAL,
+            interpretation      TEXT,
+            FOREIGN KEY (run_id) REFERENCES pipeline_runs(run_id)
+        )
+    """)
+
+
     conn.commit()
     conn.close()
     print("✓ All tables created successfully")

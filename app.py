@@ -34,6 +34,7 @@ from db.queries  import (
     get_stock_prices, get_merged, get_correlation,
     price_history_exists, get_all_runs,
     get_historical_prices,
+    insert_buzz_correlation, get_buzz_correlation,
 )
 from pipeline.fetch     import fetch_news
 from pipeline.classify  import (
@@ -45,7 +46,7 @@ from pipeline.prices    import (
     fetch_historical, get_price_window, get_stock_info,
     format_market_cap,
 )
-from pipeline.correlate import run_correlation
+from pipeline.correlate import run_correlation, run_buzz_correlation
 from pipeline.report    import generate_report
 from charts.visualizations import generate_all_charts
 from config import GROQ_MODELS, GROQ_CLASSIFY_MODEL
@@ -195,6 +196,8 @@ with st.sidebar:
                         }
                         for _, row in corr_df.iterrows()
                     }
+
+                    st.session_state.buzz_result = get_buzz_correlation(run_id)
 
                     st.session_state.loaded_symbol    = saved_symbol
                     st.session_state.loaded_date_from = saved_from
@@ -403,6 +406,9 @@ if analyze_btn:
                 run_correlation(
                     df_relevant, df_prices, symbol, run_id)
             progress_bar.progress(88)
+            
+            # Buzz vs volatility (article volume signal)
+            buzz_result = run_buzz_correlation(df_merged)
 
             status_text.text("📋 Stage 6/6 — Generating findings report...")
             report_text = generate_report(
@@ -417,6 +423,7 @@ if analyze_btn:
             insert_daily_sentiment(run_id, df_daily)
             insert_stock_prices(run_id, df_prices)
             insert_correlation(run_id, symbol, corr_results)
+            insert_buzz_correlation(run_id, symbol, buzz_result)
             insert_findings(
                 run_id, symbol,
                 date_from_str, date_to_str,
@@ -428,6 +435,7 @@ if analyze_btn:
             st.session_state.df_daily     = df_daily
             st.session_state.df_merged    = df_merged
             st.session_state.corr_results = corr_results
+            st.session_state.buzz_result  = buzz_result
 
             progress_bar.progress(100)
             status_text.text("✓ Analysis complete!")
@@ -450,6 +458,7 @@ df_relevant  = st.session_state.df_relevant
 df_daily     = st.session_state.df_daily
 df_merged    = st.session_state.df_merged
 corr_results = st.session_state.corr_results
+buzz_result  = st.session_state.get('buzz_result')
 
 if df_relevant is None:
     st.info("👆 Select a stock and date range, "
@@ -499,12 +508,13 @@ st.markdown("---")
 # ════════════════════════════════════════════════════════════
 # TABS
 # ════════════════════════════════════════════════════════════
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📈 Sentiment & Price",
     "🔥 Correlation",
     "📰 News Feed",
     "📋 Findings Report",
     "📉 Stock Trend",
+    "📢 Buzz vs Volatility",
 ])
 
 charts = generate_all_charts(
@@ -821,3 +831,40 @@ with tab5:
                           'price_direction']]
                 .sort_values('date', ascending=False).round(2),
                 hide_index=True, use_container_width=True)
+            
+# ════════════════════════════════════════════════════════════
+# TAB 6
+# ════════════════════════════════════════════════════════════
+with tab6:
+    st.markdown("#### Article Volume (Buzz) vs Price Volatility")
+    st.caption(
+        "Measures whether attention volume — not sentiment direction — "
+        "predicts the size of price moves. Source: Finnhub financial "
+        "press coverage only (not social media)."
+    )
+    buzz = st.session_state.get('buzz_result')
+    if buzz and buzz['correlation'] is not None:
+        b1, b2 = st.columns(2)
+        b1.metric("Buzz–Volatility Correlation", f"{buzz['correlation']:+.3f}")
+        b2.metric("Direct-only Correlation", 
+                  f"{buzz['correlation_direct']:+.3f}" if buzz['correlation_direct'] else "N/A")
+        st.info(buzz['interpretation'])
+
+        # Scatter: article_count vs abs(price_change_pct)
+        import matplotlib.pyplot as plt
+        df_plot = df_merged.copy()
+        df_plot['abs_change'] = df_plot['price_change_pct'].abs()
+        fig, ax = plt.subplots(figsize=(10, 5))
+        fig.patch.set_facecolor('#0f0f0f')
+        ax.set_facecolor('#1a1a1a')
+        ax.scatter(df_plot['article_count'], df_plot['abs_change'],
+                   color='#ffb74d', s=80, alpha=0.8)
+        ax.set_xlabel('Article Count (Buzz)', color='#ccc')
+        ax.set_ylabel('|Price Change %|', color='#ccc')
+        ax.tick_params(colors='#ccc')
+        ax.grid(True, alpha=0.2, color='#333')
+        ax.set_title(f'{display_symbol} — Buzz vs Volatility', color='#ccc')
+        st.pyplot(fig)
+        plt.close()
+    else:
+        st.info("Buzz correlation not available for this run.")
